@@ -1,12 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit';
-import projectsReducer from './projectsSlice';
 
+// Create a simple reducer
+const initialState = {
+  projects: []
+};
+
+function rootReducer(state = initialState, action) {
+  switch (action.type) {
+    default:
+      return state;
+  }
+}
+
+// Create and export the store
 export const store = configureStore({
-  reducer: {
-    projects: projectsReducer,
-  },
+  reducer: rootReducer
 });
-
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
