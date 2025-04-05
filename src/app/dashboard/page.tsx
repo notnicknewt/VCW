@@ -21,17 +21,17 @@ export default function Dashboard() {
   useEffect(() => {
     const loadProjects = async () => {
       if (!user) return;
-      
+
       try {
         setLoading(true);
         const userProjects = await getUserProjects(user.uid);
-        
+
         // Add projects to Redux store
         userProjects.forEach(project => {
           // Logic to sync Firebase projects with Redux store
           // This would be more complex in a real implementation
         });
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error loading projects:', error);
@@ -39,22 +39,20 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-    
+
     loadProjects();
   }, [user, dispatch]);
 
   const handleCreateProject = async () => {
     if (!newProjectTitle.trim() || !user) return;
-    
+
     try {
-      // Create project in Redux store
       dispatch(createProject({ title: newProjectTitle }));
-      
-      // Save to Firebase (in a real implementation, we would use the returned ID)
+
       if (currentProject) {
         await saveProject(user.uid, currentProject);
       }
-      
+
       setNewProjectTitle('');
     } catch (error) {
       console.error('Error creating project:', error);
@@ -68,12 +66,9 @@ export default function Dashboard() {
 
   const handleDeleteProject = async (projectId: string) => {
     if (!user) return;
-    
+
     try {
-      // Delete from Redux store
       dispatch(deleteProject(projectId));
-      
-      // Delete from Firebase
       await deleteFirebaseProject(projectId);
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -98,14 +93,14 @@ export default function Dashboard() {
             </div>
           </div>
         </header>
-        
+
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
               <span className="block sm:inline">{error}</span>
             </div>
           )}
-          
+
           <div className="px-4 py-6 sm:px-0">
             <div className="border-4 border-dashed border-gray-200 rounded-lg p-4 bg-white">
               <div className="mb-8">
@@ -126,7 +121,7 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-              
+
               <div>
                 <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
                 {loading ? (
@@ -137,7 +132,7 @@ export default function Dashboard() {
                   <p className="text-gray-500">You don't have any projects yet. Create one to get started!</p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {projects.map((project) => (
+                    {projects.map((project: { id: string; title: string; createdAt: string; contentIdea?: string }) => (
                       <div key={project.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                         <h3 className="text-lg font-medium">{project.title}</h3>
                         <p className="text-sm text-gray-500 mb-4">
