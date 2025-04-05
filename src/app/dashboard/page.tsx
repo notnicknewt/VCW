@@ -49,10 +49,6 @@ export default function Dashboard() {
     try {
       dispatch(createProject({ title: newProjectTitle }));
 
-      if (currentProject) {
-        await saveProject(user.uid, currentProject);
-      }
-
       setNewProjectTitle('');
     } catch (error) {
       console.error('Error creating project:', error);
