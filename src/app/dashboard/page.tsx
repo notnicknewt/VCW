@@ -12,7 +12,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 export default function Dashboard() {
   const { user } = useAuth();
   const dispatch = useDispatch();
-  const { projects, currentProject } = useSelector((state: RootState) => state.projects);
+  const projects = useSelector((state: RootState) => state.projects);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newProjectTitle, setNewProjectTitle] = useState('');
