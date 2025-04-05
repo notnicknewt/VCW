@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { createProject, setCurrentProject, deleteProject } from '@/store/projectsSlice';
-import { getUserProjects, saveProject, deleteProject as deleteFirebaseProject } from '@/lib/firebase';
+import { getUserProjects, saveProject, deleteProject as deleteFirebaseProject } from '@/lib/firebase.client';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
