@@ -1,19 +1,32 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { AnyAction } from 'redux';
 
-// Create a simple reducer
-const initialState = {
+// Define the initial state type
+interface Project {
+  id: string;
+  title: string;
+  createdAt: string;
+  contentIdea?: string;
+}
+
+interface RootState {
+  projects: Project[];
+}
+
+const initialState: RootState = {
   projects: []
 };
 
-function rootReducer(state = initialState, action) {
+function rootReducer(state = initialState, action: AnyAction): RootState {
   switch (action.type) {
     default:
       return state;
   }
 }
 
-// Create and export the store
 export const store = configureStore({
   reducer: rootReducer
 });
-export type { AppDispatch, RootState };
+
+export type AppDispatch = typeof store.dispatch;
+export type { RootState };
