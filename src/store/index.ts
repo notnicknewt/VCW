@@ -16,3 +16,4 @@ function rootReducer(state = initialState, action) {
 export const store = configureStore({
   reducer: rootReducer
 });
+export type { AppDispatch, RootState };
