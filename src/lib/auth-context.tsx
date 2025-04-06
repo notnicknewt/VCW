@@ -1,15 +1,16 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
+  signInWithEmailAndPassword, // ✅ added for login
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
 } from 'firebase/auth';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from './firebase.client';
 
+// You can type this later for better safety
 const AuthContext = createContext<any>({});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
+    // Optional: Update displayName if you want to
     return result;
   };
 
