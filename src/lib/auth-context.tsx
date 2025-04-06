@@ -9,7 +9,14 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase.client';
 
-const AuthContext = createContext<any>({});
+interface AuthContextType {
+  user: any;
+  loading: boolean;
+  signUp: (email: string, password: string, name: string) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
@@ -26,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    // You can also update the user’s profile here if needed (e.g., display name)
+    // Optional: You can update the user's profile with displayName here
     return result;
   };
 
@@ -42,4 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
