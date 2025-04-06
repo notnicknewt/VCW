@@ -2,15 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/dashboard',
-        permanent: false, // Set to true if you want a 308 permanent redirect
-      },
-    ];
-  },
+  productionBrowserSourceMaps: true, // 👈 ADD THIS
 };
 
 module.exports = nextConfig;
