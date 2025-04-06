@@ -58,8 +58,8 @@ export const signInWithGoogle = async () => {
     }
 
     return user;
-  } catch (error) {
-    console.error('Error signing in with Google:', error);
+  } catch (error: any) {
+    console.error('Error signing in with Google:', error.message || error);
     throw error;
   }
 };
@@ -77,8 +77,8 @@ export const registerWithEmail = async (email: string, password: string, name: s
     });
 
     return user;
-  } catch (error) {
-    console.error('Error registering with email:', error);
+  } catch (error: any) {
+    console.error('Error registering with email:', error.message || error);
     throw error;
   }
 };
@@ -87,8 +87,8 @@ export const signInWithEmail = async (email: string, password: string) => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
     return result.user;
-  } catch (error) {
-    console.error('Error signing in with email:', error);
+  } catch (error: any) {
+    console.error('Error signing in with email:', error.message || error);
     throw error;
   }
 };
@@ -96,8 +96,8 @@ export const signInWithEmail = async (email: string, password: string) => {
 export const signOutUser = async () => {
   try {
     await signOut(auth);
-  } catch (error) {
-    console.error('Error signing out:', error);
+  } catch (error: any) {
+    console.error('Error signing out:', error.message || error);
     throw error;
   }
 };
@@ -118,8 +118,8 @@ export const saveProject = async (userId: string, project: any) => {
     }, { merge: true });
 
     return project.id;
-  } catch (error) {
-    console.error('Error saving project:', error);
+  } catch (error: any) {
+    console.error('Error saving project:', error.message || error);
     throw error;
   }
 };
@@ -135,8 +135,8 @@ export const getUserProjects = async (userId: string) => {
     });
 
     return projects;
-  } catch (error) {
-    console.error('Error getting user projects:', error);
+  } catch (error: any) {
+    console.error('Error getting user projects:', error.message || error);
     throw error;
   }
 };
@@ -149,8 +149,8 @@ export const getProjectById = async (projectId: string) => {
     } else {
       throw new Error('Project not found');
     }
-  } catch (error) {
-    console.error('Error getting project:', error);
+  } catch (error: any) {
+    console.error('Error getting project:', error.message || error);
     throw error;
   }
 };
@@ -164,8 +164,8 @@ export const updateProject = async (projectId: string, data: any) => {
     });
 
     return projectId;
-  } catch (error) {
-    console.error('Error updating project:', error);
+  } catch (error: any) {
+    console.error('Error updating project:', error.message || error);
     throw error;
   }
 };
@@ -173,8 +173,8 @@ export const updateProject = async (projectId: string, data: any) => {
 export const deleteProject = async (projectId: string) => {
   try {
     await deleteDoc(doc(db, 'projects', projectId));
-  } catch (error) {
-    console.error('Error deleting project:', error);
+  } catch (error: any) {
+    console.error('Error deleting project:', error.message || error);
     throw error;
   }
 };
