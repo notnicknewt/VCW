@@ -3,17 +3,29 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import {
   createUserWithEmailAndPassword,
-  signInWithPopup,
   signInWithEmailAndPassword,
+  signInWithPopup,
   GoogleAuthProvider,
+  signOut,
   onAuthStateChanged,
+  updateProfile,
+  User
 } from 'firebase/auth';
 import { auth } from './firebase.client';
 
-const AuthContext = createContext<any>({});
+type AuthContextType = {
+  user: User | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signOutUser: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+};
+
+const AuthContext = createContext<Partial<AuthContextType>>({});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,30 +37,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string) => {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    return result;
+  const signIn = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signIn = async (email: string, password: string) => {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    return result;
+  const signUp = async (email: string, password: string, name: string) => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: name });
+    }
+  };
+
+  const signOutUser = async () => {
+    await signOut(auth);
+    setUser(null);
   };
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
+    await signInWithPopup(auth, provider);
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signUp,
-        signIn,
-        signInWithGoogle,
-      }}
+      value={{ user, loading, signIn, signUp, signOutUser, signInWithGoogle }}
     >
       {children}
     </AuthContext.Provider>
