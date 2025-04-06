@@ -17,8 +17,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      if (typeof signIn !== 'function') throw new Error('signIn function not available');
       await signIn(email, password);
-      // Successful login will redirect via ProtectedRoute
     } catch (error: any) {
       setError(error.message || 'Failed to sign in');
     } finally {
@@ -31,8 +31,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      if (typeof signInWithGoogle !== 'function') throw new Error('Google sign-in not available');
       await signInWithGoogle();
-      // Successful login will redirect via ProtectedRoute
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with Google');
     } finally {
@@ -51,13 +51,13 @@ export default function LoginPage() {
             Create engaging short-form videos with high viral potential
           </p>
         </div>
-        
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <span className="block sm:inline">{error}</span>
           </div>
         )}
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleEmailLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        
+
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -110,7 +110,7 @@ export default function LoginPage() {
               <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
             </div>
           </div>
-          
+
           <div className="mt-6">
             <button
               onClick={handleGoogleLogin}
@@ -129,7 +129,7 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
-        
+
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}
