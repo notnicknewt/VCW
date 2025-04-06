@@ -25,7 +25,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
+      await signUp?.(email, password, name);
       // Successful registration will redirect via ProtectedRoute
     } catch (error: any) {
       setError(error.message || 'Failed to create account');
@@ -39,7 +39,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await signInWithGoogle();
+      await signInWithGoogle?.();
       // Successful login will redirect via ProtectedRoute
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with Google');
