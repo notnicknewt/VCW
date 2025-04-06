@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from './firebase.client';
 
-
 const AuthContext = createContext<any>({});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -12,11 +11,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
+      setUser(user || null);
       setLoading(false);
     });
 
