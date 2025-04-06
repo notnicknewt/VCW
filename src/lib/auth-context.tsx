@@ -1,16 +1,15 @@
 'use client';
 
+import { createContext, useContext, useState, useEffect } from 'react';
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword, // ✅ added for login
   signInWithPopup,
+  signInWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from './firebase.client';
 
-// You can type this later for better safety
 const AuthContext = createContext<any>({});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -28,12 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    // Optional: Update displayName if you want to
     return result;
   };
 
   const signIn = async (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result;
   };
 
   const signInWithGoogle = async () => {
@@ -42,7 +41,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signUp,
+        signIn,
+        signInWithGoogle,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
