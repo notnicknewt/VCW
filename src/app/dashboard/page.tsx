@@ -1,165 +1,114 @@
-'use client';
+"use client";
 
-export const dynamic = 'force-dynamic';
-
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { createProject, setCurrentProject, deleteProject } from '@/store/projectsSlice';
-import { getUserProjects, saveProject, deleteProject as deleteFirebaseProject } from '@/lib/firebase.client';
-import { useAuth } from '@/lib/auth-context';
-import Link from 'next/link';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { createProject } from "@/store/slices/projectsSlice";
+import type { RootState } from "@/store";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const router = useRouter();
   const dispatch = useDispatch();
-  const projects = useSelector((state: RootState) => state.projects);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [newProjectTitle, setNewProjectTitle] = useState('');
-
-  // Load user projects from Firebase
-  useEffect(() => {
-    const loadProjects = async () => {
-      if (!user) return;
-
-      try {
-        setLoading(true);
-        const userProjects = await getUserProjects(user.uid);
-
-        // Add projects to Redux store
-        userProjects.forEach(project => {
-          // Logic to sync Firebase projects with Redux store
-          // This would be more complex in a real implementation
-        });
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading projects:', error);
-        setError('Failed to load your projects');
-        setLoading(false);
+  const { projects, loading } = useSelector((state: RootState) => state.projects);
+  const [newProjectTitle, setNewProjectTitle] = useState("");
+  
+  const handleCreateProject = () => {
+    if (!newProjectTitle.trim()) return;
+    
+    dispatch(createProject({ title: newProjectTitle }));
+    setNewProjectTitle("");
+    
+    // Navigate to the new project after a short delay to allow state to update
+    setTimeout(() => {
+      const newProject = projects[projects.length - 1];
+      if (newProject) {
+        router.push(`/dashboard/${newProject.id}`);
       }
-    };
-
-    loadProjects();
-  }, [user, dispatch]);
-
-  const handleCreateProject = async () => {
-    if (!newProjectTitle.trim() || !user) return;
-
-    try {
-      dispatch(createProject({ title: newProjectTitle }));
-
-      setNewProjectTitle('');
-    } catch (error) {
-      console.error('Error creating project:', error);
-      setError('Failed to create project');
-    }
+    }, 100);
   };
-
+  
   const handleSelectProject = (projectId: string) => {
-    dispatch(setCurrentProject(projectId));
+    router.push(`/dashboard/${projectId}`);
   };
-
-  const handleDeleteProject = async (projectId: string) => {
-    if (!user) return;
-
-    try {
-      dispatch(deleteProject(projectId));
-      await deleteFirebaseProject(projectId);
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      setError('Failed to delete project');
-    }
-  };
-
+  
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">Viral Content Wizard</h1>
-            <div className="flex items-center">
-              <span className="mr-4">{user?.displayName || user?.email}</span>
-              <button
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-                onClick={() => {/* Sign out logic */}}
+    <div className="container mx-auto p-6 max-w-6xl">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-2">Viral Content Wizard</h1>
+        <p className="text-gray-600">Create, optimize, and analyze your short-form video content</p>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
+          <p className="text-gray-600 mb-4">Start a new viral content idea from scratch</p>
+          
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateProject();
+          }}>
+            <div className="flex">
+              <input 
+                type="text"
+                className="flex-1 border rounded-l-md p-2 outline-none"
+                value={newProjectTitle}
+                placeholder="Enter a project title"
+                onChange={(e) => setNewProjectTitle(e.target.value)}
+              />
+              <button 
+                type="submit"
+                className="bg-purple-600 text-white px-4 py-2 rounded-r-md hover:bg-purple-700 transition disabled:opacity-50"
+                disabled={!newProjectTitle.trim()}
               >
-                Sign Out
+                Create Project
               </button>
             </div>
-          </div>
-        </header>
-
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{error}</span>
+          </form>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
+          
+          {loading ? (
+            <div className="text-center p-4">
+              <p>Loading projects...</p>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center p-4">
+              <p className="text-gray-600">You don't have any projects yet. Create one to get started!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {projects.map((project) => (
+                <div 
+                  key={project.id}
+                  className="border rounded-md p-4 hover:shadow-md transition cursor-pointer"
+                  onClick={() => handleSelectProject(project.id)}
+                >
+                  <div className="project-info">
+                    <h3 className="font-medium">{project.title}</h3>
+                    <p className="text-sm text-gray-500 mb-2">
+                      Created: {new Date(project.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-4 text-right">
+                    <button 
+                      className="text-purple-600 font-medium hover:text-purple-800 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectProject(project.id);
+                      }}
+                    >
+                      Start
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-
-          <div className="px-4 py-6 sm:px-0">
-            <div className="border-4 border-dashed border-gray-200 rounded-lg p-4 bg-white">
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
-                <div className="flex">
-                  <input
-                    type="text"
-                    placeholder="Enter project title"
-                    className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                    value={newProjectTitle}
-                    onChange={(e) => setNewProjectTitle(e.target.value)}
-                  />
-                  <button
-                    onClick={handleCreateProject}
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
-                {loading ? (
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
-                  </div>
-                ) : projects.length === 0 ? (
-                  <p className="text-gray-500">You don't have any projects yet. Create one to get started!</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {projects.map((project: { id: string; title: string; createdAt: string; contentIdea?: string }) => (
-                      <div key={project.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-medium">{project.title}</h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                          Created: {new Date(project.createdAt).toLocaleDateString()}
-                        </p>
-                        <div className="flex justify-between">
-                          <Link
-                            href={`/project/${project.id}/idea`}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700"
-                            onClick={() => handleSelectProject(project.id)}
-                          >
-                            {project.contentIdea ? 'Continue' : 'Start'}
-                          </Link>
-                          <button
-                            onClick={() => handleDeleteProject(project.id)}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }

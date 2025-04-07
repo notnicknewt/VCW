@@ -1,8 +1,14 @@
-// src/app/layout.tsx
-'use client';
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { Providers } from "./providers";
 
-import './globals.css';
-import { AuthProvider } from '@/lib/auth-context';
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Viral Content Wizard",
+  description: "Create engaging short-form videos with high viral potential",
+};
 
 export default function RootLayout({
   children,
@@ -11,10 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <AuthProvider>
+      <body className={inter.className}>
+        <Providers>
           {children}
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );
