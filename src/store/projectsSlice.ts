@@ -9,31 +9,29 @@ const saveProjects = (projects: any[]) => {
 
 const loadProjects = () => {
   if (typeof window !== "undefined") {
-    const data = localStorage.getItem("vcw_projects");
-    return data ? JSON.parse(data) : [];
+    try {
+      const data = localStorage.getItem("vcw_projects");
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error("Error loading projects from localStorage:", error);
+      return [];
+    }
   }
   return [];
 };
 
+// Define types for our state
 interface ContentIdea {
-  id: string;
-  title: string;
   contentIdea: string;
   targetAudience: string;
   contentGoal: string;
   analysis?: any;
-  createdAt: number;
-  updatedAt: number;
 }
 
 interface Hook {
-  id: string;
-  contentIdeaId: string;
   hookType: string;
   selectedHook?: string;
   generatedHooks?: any;
-  createdAt: number;
-  updatedAt: number;
 }
 
 interface Project {
@@ -52,19 +50,9 @@ interface ProjectsState {
   error: string | null;
 }
 
-// Load initial projects
-const loadInitialProjects = () => {
-  try {
-    return loadProjects();
-  } catch (error) {
-    console.error("Failed to load projects from localStorage:", error);
-    return [];
-  }
-};
-
 // Define initial state
 const initialState: ProjectsState = {
-  projects: loadInitialProjects(),
+  projects: loadProjects(),
   currentProject: null,
   loading: false,
   error: null,
@@ -97,72 +85,46 @@ const projectsSlice = createSlice({
       }
     },
     
-    // Content idea management
-    saveContentIdea: (state, action: PayloadAction<{
-      contentIdea: string;
-      targetAudience: string;
-      contentGoal: string;
-      analysis?: any;
-    }>) => {
+    saveContentIdea: (state, action: PayloadAction<ContentIdea>) => {
       if (!state.currentProject) return;
       
-      const contentIdea: ContentIdea = {
-        id: Date.now().toString(),
-        title: state.currentProject.title,
-        ...action.payload,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      
-      const updatedProject = {
+      // Update current project with content idea
+      state.currentProject = {
         ...state.currentProject,
-        contentIdea,
+        contentIdea: action.payload,
         updatedAt: Date.now(),
       };
       
+      // Update the project in the projects array
       const index = state.projects.findIndex(p => p.id === state.currentProject?.id);
       if (index !== -1) {
-        state.projects[index] = updatedProject;
-        state.currentProject = updatedProject;
-        
-        // Save to local storage
-        saveProjects(state.projects);
+        state.projects[index] = state.currentProject;
       }
+      
+      // Save to local storage
+      saveProjects(state.projects);
     },
     
-    // Hook management
-    saveHook: (state, action: PayloadAction<{
-      hookType: string;
-      selectedHook?: string;
-      generatedHooks?: any;
-    }>) => {
+    saveHook: (state, action: PayloadAction<Hook>) => {
       if (!state.currentProject) return;
       
-      const hook: Hook = {
-        id: Date.now().toString(),
-        contentIdeaId: state.currentProject.contentIdea?.id || "",
-        ...action.payload,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      
-      const updatedProject = {
+      // Update current project with hook
+      state.currentProject = {
         ...state.currentProject,
-        hook,
+        hook: action.payload,
         updatedAt: Date.now(),
       };
       
+      // Update the project in the projects array
       const index = state.projects.findIndex(p => p.id === state.currentProject?.id);
       if (index !== -1) {
-        state.projects[index] = updatedProject;
-        state.currentProject = updatedProject;
-        
-        // Save to local storage
-        saveProjects(state.projects);
+        state.projects[index] = state.currentProject;
       }
+      
+      // Save to local storage
+      saveProjects(state.projects);
     },
     
-    // UI state management
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },

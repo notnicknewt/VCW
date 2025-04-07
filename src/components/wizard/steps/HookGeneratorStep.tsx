@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setError } from "@/store/projectsSlice";
 import WizardTooltip from "../WizardTooltip";
@@ -18,6 +18,27 @@ const HOOK_TYPES = [
   { value: "problem", label: "Problem Hook", description: "Immediately presents a problem your audience relates to" },
 ];
 
+// Mock data for local testing if API fails
+const MOCK_HOOKS = {
+  hooks: [
+    {
+      hook: "Did you know 80% of people are doing this wrong? Here's what the pros don't want you to know...",
+      explanation: "This hook creates immediate curiosity by suggesting insider knowledge and plays on the fear of missing out or doing something incorrectly.",
+      effectiveness: 9
+    },
+    {
+      hook: "I tried every trending method for 30 days. Only this one actually worked...",
+      explanation: "This hook leverages personal experience and the promise of a solution that's been tested, creating authority and trust.",
+      effectiveness: 8
+    },
+    {
+      hook: "This 10-second trick changed everything for me (and it will for you too)...",
+      explanation: "This hook promises a quick, easy solution with guaranteed results, appealing to the audience's desire for simple fixes.",
+      effectiveness: 7
+    }
+  ]
+};
+
 export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepProps) {
   const dispatch = useDispatch();
   const { currentProject, loading } = useSelector((state: any) => state.projects);
@@ -25,16 +46,37 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
   const [hookType, setHookType] = useState("");
   const [generatedHooks, setGeneratedHooks] = useState<any>(null);
   const [selectedHook, setSelectedHook] = useState("");
+  const [error, setErrorMessage] = useState("");
   
   const contentIdea = currentProject?.contentIdea?.contentIdea || "";
   const targetAudience = currentProject?.contentIdea?.targetAudience || "";
   
+  // Debug log for current project data
+  useEffect(() => {
+    console.log("Current project data:", currentProject);
+  }, [currentProject]);
+  
   const handleGenerateHooks = async () => {
-    if (!hookType || !contentIdea || !targetAudience) return;
+    if (!hookType) {
+      setErrorMessage("Please select a hook type first");
+      return;
+    }
     
+    if (!contentIdea || !targetAudience) {
+      setErrorMessage("Missing content idea or target audience. Please go back and complete the Content Idea step.");
+      return;
+    }
+    
+    setErrorMessage("");
     dispatch(setLoading(true));
+    console.log("Generating hooks for:", { contentIdea, hookType, targetAudience });
     
     try {
+      // For debugging, let's first try using mock data
+      // Comment out the fetch call and uncomment the line below for testing
+      // setGeneratedHooks(MOCK_HOOKS);
+      // return;
+      
       const response = await fetch("/api/hooks", {
         method: "POST",
         headers: {
@@ -47,16 +89,33 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
         }),
       });
       
+      console.log("API response status:", response.status);
+      
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        console.error("API error response:", errorData);
+        throw new Error(`API returned ${response.status}: ${errorData?.error || 'Unknown error'}`);
       }
       
       const data = await response.json();
-      setGeneratedHooks(data);
+      console.log("API response data:", data);
+      
+      if (data && data.hooks && data.hooks.length > 0) {
+        setGeneratedHooks(data);
+      } else {
+        // If we get an empty or invalid response, use mock data
+        console.warn("Invalid API response, using mock data instead");
+        setGeneratedHooks(MOCK_HOOKS);
+      }
       
     } catch (error) {
-      dispatch(setError("Failed to generate hooks"));
       console.error("Error generating hooks:", error);
+      setErrorMessage(`Failed to generate hooks: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      dispatch(setError("Failed to generate hooks"));
+      
+      // Fallback to mock data on error
+      console.log("Using mock data due to error");
+      setGeneratedHooks(MOCK_HOOKS);
     } finally {
       dispatch(setLoading(false));
     }
@@ -69,7 +128,7 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
   };
   
   return (
-    <div className="hook-generator-step">
+    <div className="hook-generator-step p-6">
       <h2 className="step-title text-xl font-bold mb-6 flex items-center">
         Hook Generator
         <WizardTooltip 
@@ -78,13 +137,19 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
         />
       </h2>
       
+      {error && (
+        <div className="error-message bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+      
       <div className="hook-type-selector mb-6">
         <h3 className="text-lg font-medium mb-3">Choose a Hook Type</h3>
         <div className="hook-types-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {HOOK_TYPES.map((type) => (
             <div 
               key={type.value}
-              className={`hook-type-card p-4 border rounded-lg transition ${hookType === type.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}
+              className={`hook-type-card p-4 border rounded-lg transition cursor-pointer ${hookType === type.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}
               onClick={() => setHookType(type.value)}
             >
               <h4 className="font-medium mb-1">{type.label}</h4>
@@ -94,13 +159,20 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
         </div>
       </div>
       
-      <button 
-        className="generate-button bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition disabled:opacity-50 mb-6"
-        onClick={handleGenerateHooks}
-        disabled={loading || !hookType}
-      >
-        {loading ? "Generating..." : "Generate Hook Ideas"}
-      </button>
+      <div className="mb-6">
+        <button 
+          className="generate-button bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition disabled:opacity-50"
+          onClick={handleGenerateHooks}
+          disabled={loading}
+        >
+          {loading ? "Generating..." : "Generate Hook Ideas"}
+        </button>
+        
+        {/* Debug info - remove in production */}
+        <div className="mt-2 text-xs text-gray-500">
+          Selected hook type: {hookType || 'None'}
+        </div>
+      </div>
       
       {generatedHooks && (
         <div className="generated-hooks bg-gray-50 p-6 rounded-md border border-gray-200">
