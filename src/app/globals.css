@@ -24,3 +24,149 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Spinner for loading states */
+.spinner {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(105, 65, 198, 0.3);
+  border-radius: 50%;
+  border-top-color: #6941C6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spinner for loading states */
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(105, 65, 198, 0.3);
+  border-radius: 50%;
+  border-top-color: #6941C6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Wizard styles */
+.wizard-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.wizard-progress {
+  margin-bottom: 2rem;
+}
+
+.wizard-content {
+  margin-bottom: 2rem;
+}
+
+/* Timeline structure visualization */
+.timeline-container {
+  margin-bottom: 1.5rem;
+}
+
+.timeline-segment {
+  position: relative;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.segment-bar {
+  border-radius: 6px;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+/* Tooltip styles */
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Effectiveness meter for hooks */
+.effectiveness-meter {
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.effectiveness-fill {
+  height: 100%;
+  background-color: #6941C6;
+  transition: width 0.3s ease;
+}
+
+/* Hook and caption card styles */
+.hook-card, .caption-card {
+  transition: all 0.2s ease;
+}
+
+.hook-card:hover, .caption-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Hashtags styles */
+.hashtag {
+  display: inline-block;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Performance analysis styles */
+.rating-box {
+  text-align: center;
+}
+
+.metric-comparison {
+  display: flex;
+  flex-direction: column;
+}
+
+.above-average {
+  color: #38A169;
+}
+
+.below-average {
+  color: #E53E3E;
+}
+
+.average {
+  color: #ED8936;
+}
+
+/* Animation for the spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(105, 65, 198, 0.3);
+  border-radius: 50%;
+  border-top-color: #6941C6;
+  animation: spin 1s ease-in-out infinite;
+}
