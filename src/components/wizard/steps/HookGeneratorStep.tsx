@@ -1,8 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setLoading, setError } from "@/store/projectsSlice";
+import { useState } from "react";
 import WizardTooltip from "../WizardTooltip";
 
 interface HookGeneratorStepProps {
@@ -18,112 +16,129 @@ const HOOK_TYPES = [
   { value: "problem", label: "Problem Hook", description: "Immediately presents a problem your audience relates to" },
 ];
 
-// Mock data for local testing if API fails
-const MOCK_HOOKS = {
-  hooks: [
+// Hardcoded mock data for each hook type
+const MOCK_DATA = {
+  question: [
     {
-      hook: "Did you know 80% of people are doing this wrong? Here's what the pros don't want you to know...",
-      explanation: "This hook creates immediate curiosity by suggesting insider knowledge and plays on the fear of missing out or doing something incorrectly.",
+      hook: "Are you making these 3 fatal mistakes that are killing your social media growth?",
+      explanation: "This question immediately creates anxiety and curiosity - viewers worry they might be making these mistakes and need to know what they are.",
       effectiveness: 9
     },
     {
-      hook: "I tried every trending method for 30 days. Only this one actually worked...",
-      explanation: "This hook leverages personal experience and the promise of a solution that's been tested, creating authority and trust.",
+      hook: "Want to know the secret technique that top creators never share?",
+      explanation: "This appeals to the desire for exclusive information and creates an information gap the viewer wants to fill.",
       effectiveness: 8
     },
     {
-      hook: "This 10-second trick changed everything for me (and it will for you too)...",
-      explanation: "This hook promises a quick, easy solution with guaranteed results, appealing to the audience's desire for simple fixes.",
+      hook: "What if everything you know about going viral is actually wrong?",
+      explanation: "This challenges existing beliefs and creates cognitive dissonance that makes viewers want to resolve the tension by watching more.",
+      effectiveness: 7
+    }
+  ],
+  statistic: [
+    {
+      hook: "80% of viral videos share this one feature - and it's not what you think",
+      explanation: "Using a specific percentage adds credibility while the twist at the end creates curiosity about what this unexpected feature might be.",
+      effectiveness: 9
+    },
+    {
+      hook: "New study shows only 3% of content creators do this simple trick that triples engagement",
+      explanation: "This combines statistical rarity with the promise of a simple solution, making viewers feel they can gain exclusive knowledge.",
+      effectiveness: 8
+    },
+    {
+      hook: "I analyzed 100 viral videos and discovered this shocking pattern",
+      explanation: "This establishes authority through research and promises to reveal an unexpected insight that viewers won't want to miss.",
+      effectiveness: 7
+    }
+  ],
+  story: [
+    {
+      hook: "I went from 0 to 100K followers in 30 days after making this one change...",
+      explanation: "Personal transformation stories are highly compelling, and the promise of a simple change makes it feel achievable for viewers too.",
+      effectiveness: 9
+    },
+    {
+      hook: "My content was failing until a famous creator sent me this message...",
+      explanation: "This creates curiosity about both the message and the famous person, while promising valuable advice that changed the creator's fortunes.",
+      effectiveness: 8
+    },
+    {
+      hook: "Last month I was about to quit, then this happened...",
+      explanation: "The contrast between negative and positive outcomes creates emotional investment, and the vague 'this happened' creates a curiosity gap.",
+      effectiveness: 7
+    }
+  ],
+  controversial: [
+    {
+      hook: "Everything your favorite influencers tell you about growth is a complete lie",
+      explanation: "This bold statement challenges established authorities and promises to reveal hidden truths, compelling viewers to watch to confirm or deny.",
+      effectiveness: 9
+    },
+    {
+      hook: "This 'forbidden' content strategy is why some creators blow up overnight",
+      explanation: "The word 'forbidden' suggests exclusive, slightly taboo information that creates immediate interest and a sense of insider knowledge.",
+      effectiveness: 8
+    },
+    {
+      hook: "I'm about to show you why most social media advice is actually hurting your growth",
+      explanation: "This contrarian view creates cognitive dissonance, especially for viewers who have been following common advice without success.",
+      effectiveness: 7
+    }
+  ],
+  problem: [
+    {
+      hook: "Struggling to get views? Here's the real reason your content isn't going viral",
+      explanation: "This directly addresses a pain point and promises the 'real' solution, implying other solutions have been incorrect or incomplete.",
+      effectiveness: 9
+    },
+    {
+      hook: "If your reach suddenly dropped, this hidden algorithm change is probably why",
+      explanation: "This targets a specific problem and attributes it to something outside the viewer's control but within their ability to adapt to - if they watch.",
+      effectiveness: 8
+    },
+    {
+      hook: "The number one reason new creators fail in their first 90 days",
+      explanation: "This creates urgency for new creators while promising to help them avoid a common pitfall, making it highly relevant to the target audience.",
       effectiveness: 7
     }
   ]
 };
 
 export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepProps) {
-  const dispatch = useDispatch();
-  const { currentProject, loading } = useSelector((state: any) => state.projects);
-  
   const [hookType, setHookType] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [generatedHooks, setGeneratedHooks] = useState<any>(null);
   const [selectedHook, setSelectedHook] = useState("");
-  const [error, setErrorMessage] = useState("");
+  const [error, setError] = useState("");
   
-  const contentIdea = currentProject?.contentIdea?.contentIdea || "";
-  const targetAudience = currentProject?.contentIdea?.targetAudience || "";
-  
-  // Debug log for current project data
-  useEffect(() => {
-    console.log("Current project data:", currentProject);
-  }, [currentProject]);
-  
-  const handleGenerateHooks = async () => {
+  const handleGenerateHooks = () => {
     if (!hookType) {
-      setErrorMessage("Please select a hook type first");
+      setError("Please select a hook type first");
       return;
     }
     
-    if (!contentIdea || !targetAudience) {
-      setErrorMessage("Missing content idea or target audience. Please go back and complete the Content Idea step.");
-      return;
-    }
+    // Clear any previous errors
+    setError("");
     
-    setErrorMessage("");
-    dispatch(setLoading(true));
-    console.log("Generating hooks for:", { contentIdea, hookType, targetAudience });
+    // Show loading state
+    setIsLoading(true);
     
-    try {
-      // For debugging, let's first try using mock data
-      // Comment out the fetch call and uncomment the line below for testing
-      // setGeneratedHooks(MOCK_HOOKS);
-      // return;
+    // Simulate API call with a timeout
+    setTimeout(() => {
+      // Get the mock data for the selected hook type
+      const hooksData = {
+        hooks: MOCK_DATA[hookType as keyof typeof MOCK_DATA] || []
+      };
       
-      const response = await fetch("/api/hooks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contentIdea,
-          hookType,
-          targetAudience
-        }),
-      });
-      
-      console.log("API response status:", response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error("API error response:", errorData);
-        throw new Error(`API returned ${response.status}: ${errorData?.error || 'Unknown error'}`);
-      }
-      
-      const data = await response.json();
-      console.log("API response data:", data);
-      
-      if (data && data.hooks && data.hooks.length > 0) {
-        setGeneratedHooks(data);
-      } else {
-        // If we get an empty or invalid response, use mock data
-        console.warn("Invalid API response, using mock data instead");
-        setGeneratedHooks(MOCK_HOOKS);
-      }
-      
-    } catch (error) {
-      console.error("Error generating hooks:", error);
-      setErrorMessage(`Failed to generate hooks: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      dispatch(setError("Failed to generate hooks"));
-      
-      // Fallback to mock data on error
-      console.log("Using mock data due to error");
-      setGeneratedHooks(MOCK_HOOKS);
-    } finally {
-      dispatch(setLoading(false));
-    }
+      setGeneratedHooks(hooksData);
+      setIsLoading(false);
+    }, 1000); // Simulate a 1-second delay
   };
   
   const handleSaveAndContinue = () => {
-    // Here you would dispatch to save the hook to Redux
-    // For now we'll just continue to the next step
+    // Save the selected hook (in a real app, this would dispatch to Redux)
+    localStorage.setItem("selectedHook", selectedHook);
     onNext();
   };
   
@@ -163,12 +178,11 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
         <button 
           className="generate-button bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition disabled:opacity-50"
           onClick={handleGenerateHooks}
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? "Generating..." : "Generate Hook Ideas"}
+          {isLoading ? "Generating..." : "Generate Hook Ideas"}
         </button>
         
-        {/* Debug info - remove in production */}
         <div className="mt-2 text-xs text-gray-500">
           Selected hook type: {hookType || 'None'}
         </div>
