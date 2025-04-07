@@ -11,19 +11,35 @@ export default function Dashboard() {
   
   const { projects, loading } = useSelector((state: any) => state.projects);
   const [newProjectTitle, setNewProjectTitle] = useState("");
+  const [clientReady, setClientReady] = useState(false);
+  
+  // This effect runs once on the client after hydration
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
   
   const handleCreateProject = () => {
     if (!newProjectTitle) return;
     
+    // Create the new project
     dispatch(createProject({ title: newProjectTitle }));
+    
+    // Clear the input
     setNewProjectTitle("");
     
-    // Get the ID of the project we just created (last in the array)
-    const newProjects = [...projects, { title: newProjectTitle, id: Date.now().toString() }];
-    router.push(`/dashboard/${newProjects[newProjects.length - 1].id}`);
+    // Wait for state to update, then navigate
+    setTimeout(() => {
+      // The new project is the last one in the array
+      const latestProject = projects[projects.length - 1];
+      if (latestProject) {
+        console.log("Navigating to new project:", latestProject.id);
+        router.push(`/dashboard/${latestProject.id}`);
+      }
+    }, 100);
   };
   
   const handleSelectProject = (projectId: string) => {
+    console.log("Selecting project:", projectId);
     router.push(`/dashboard/${projectId}`);
   };
   
@@ -63,28 +79,35 @@ export default function Dashboard() {
           <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
           <p className="text-gray-600 mb-4">Start a new viral content idea from scratch</p>
           
-          <div className="input-group flex">
-            <input
-              type="text"
-              className="flex-1 border rounded-l-md p-2 outline-none"
-              value={newProjectTitle}
-              placeholder="Enter a project title"
-              onChange={(e) => setNewProjectTitle(e.target.value)}
-            />
-            <button
-              className="bg-purple-600 text-white px-4 py-2 rounded-r-md hover:bg-purple-700 transition disabled:opacity-50"
-              onClick={handleCreateProject}
-              disabled={!newProjectTitle}
-            >
-              Create Project
-            </button>
-          </div>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateProject();
+          }}>
+            <div className="input-group flex">
+              <input 
+                type="text"
+                className="flex-1 border rounded-l-md p-2 outline-none"
+                value={newProjectTitle}
+                placeholder="Enter a project title"
+                onChange={(e) => setNewProjectTitle(e.target.value)}
+              />
+              <button 
+                type="submit"
+                className="bg-purple-600 text-white px-4 py-2 rounded-r-md hover:bg-purple-700 transition disabled:opacity-50"
+                disabled={!newProjectTitle}
+              >
+                Create Project
+              </button>
+            </div>
+          </form>
         </div>
         
         <div className="projects-list-card bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
           
-          {loading ? (
+          {!clientReady ? (
+            <div>Loading...</div>
+          ) : loading ? (
             <div className="loading-indicator text-center p-4">
               <p>Loading projects...</p>
             </div>
@@ -96,7 +119,7 @@ export default function Dashboard() {
             <div className="projects-grid space-y-4">
               {projects.map((project: any) => (
                 <div 
-                  key={project.id} 
+                  key={project.id}
                   className="project-card border rounded-md p-4 hover:shadow-md transition cursor-pointer"
                   onClick={() => handleSelectProject(project.id)}
                 >
@@ -109,19 +132,26 @@ export default function Dashboard() {
                     <div className="project-progress bg-gray-200 h-2 rounded-full mb-1">
                       <div 
                         className="progress-bar bg-purple-600 h-full rounded-full"
-                        style={{
-                          width: `${getProgressPercentage(project)}%`
+                        style={{ 
+                          width: `${getProgressPercentage(project)}%` 
                         }}
                       ></div>
                     </div>
+                    
                     <div className="progress-label text-xs text-gray-600">
                       {getProgressLabel(project)} ({getProgressPercentage(project)}%)
                     </div>
                   </div>
                   
                   <div className="project-actions mt-4 text-right">
-                    <button className="text-purple-600 font-medium hover:text-purple-800 transition">
-                      {project.contentIdea ? "Continue" : "Start"}
+                    <button 
+                      className="text-purple-600 font-medium hover:text-purple-800 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectProject(project.id);
+                      }}
+                    >
+                      {project.contentIdea ? 'Continue' : 'Start'}
                     </button>
                   </div>
                 </div>

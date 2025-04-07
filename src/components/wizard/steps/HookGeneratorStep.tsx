@@ -17,7 +17,7 @@ const HOOK_TYPES = [
 ];
 
 // Hardcoded mock data for each hook type
-const MOCK_DATA = {
+const MOCK_DATA: Record<string, any[]> = {
   question: [
     {
       hook: "Are you making these 3 fatal mistakes that are killing your social media growth?",
@@ -127,11 +127,14 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
     // Simulate API call with a timeout
     setTimeout(() => {
       // Get the mock data for the selected hook type
-      const hooksData = {
-        hooks: MOCK_DATA[hookType as keyof typeof MOCK_DATA] || []
-      };
+      const data = MOCK_DATA[hookType];
       
-      setGeneratedHooks(hooksData);
+      if (data) {
+        setGeneratedHooks({ hooks: data });
+      } else {
+        setError("Could not generate hooks for this type. Please try another type.");
+      }
+      
       setIsLoading(false);
     }, 1000); // Simulate a 1-second delay
   };
@@ -182,10 +185,6 @@ export default function HookGeneratorStep({ onNext, onBack }: HookGeneratorStepP
         >
           {isLoading ? "Generating..." : "Generate Hook Ideas"}
         </button>
-        
-        <div className="mt-2 text-xs text-gray-500">
-          Selected hook type: {hookType || 'None'}
-        </div>
       </div>
       
       {generatedHooks && (

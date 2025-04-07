@@ -110,6 +110,8 @@ export default function WizardLayout() {
             </div>
           </div>
         );
+      default:
+        return null;
     }
   };
 
