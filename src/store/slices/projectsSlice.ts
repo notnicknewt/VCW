@@ -1,12 +1,18 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Type definitions
+interface ContentIdea {
+  text: string;
+  audience: string;
+  goal: string;
+  analysis?: any;
+}
+
 interface Project {
   id: string;
   title: string;
+  contentIdea?: ContentIdea;
   createdAt: number;
   updatedAt: number;
-  // Content components will be added later
 }
 
 interface ProjectsState {
@@ -16,20 +22,26 @@ interface ProjectsState {
   error: string | null;
 }
 
-// Helper to load projects from localStorage
-const loadProjectsFromStorage = (): Project[] => {
-  if (typeof window === 'undefined') return [];
+// Load projects from localStorage
+const loadProjects = (): Project[] => {
+  if (typeof window === "undefined") return [];
   
   try {
-    const storedProjects = localStorage.getItem('vcw_projects');
+    const storedProjects = localStorage.getItem("vcw_projects");
     return storedProjects ? JSON.parse(storedProjects) : [];
   } catch (error) {
-    console.error('Failed to load projects from localStorage:', error);
+    console.error("Failed to load projects from localStorage:", error);
     return [];
   }
 };
 
-// Initial state
+// Save projects to localStorage
+const saveProjects = (projects: Project[]) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("vcw_projects", JSON.stringify(projects));
+};
+
+// Define initial state
 const initialState: ProjectsState = {
   projects: [],
   currentProject: null,
@@ -37,17 +49,17 @@ const initialState: ProjectsState = {
   error: null,
 };
 
-// Create the slice
+// Create slice
 const projectsSlice = createSlice({
-  name: 'projects',
+  name: "projects",
   initialState,
   reducers: {
-    // Initialize projects from localStorage (called on app load)
+    // Initialize projects from localStorage
     initializeProjects: (state) => {
-      state.projects = loadProjectsFromStorage();
+      state.projects = loadProjects();
     },
     
-    // Create a new project
+    // Project management
     createProject: (state, action: PayloadAction<{ title: string }>) => {
       const newProject: Project = {
         id: Date.now().toString(),
@@ -55,17 +67,13 @@ const projectsSlice = createSlice({
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
-      
       state.projects.push(newProject);
       state.currentProject = newProject;
       
       // Save to localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('vcw_projects', JSON.stringify(state.projects));
-      }
+      saveProjects(state.projects);
     },
     
-    // Set the current project
     setCurrentProject: (state, action: PayloadAction<string>) => {
       const project = state.projects.find(p => p.id === action.payload);
       if (project) {
@@ -73,12 +81,35 @@ const projectsSlice = createSlice({
       }
     },
     
-    // Set loading state
+    saveContentIdea: (state, action: PayloadAction<{ 
+      text: string; 
+      audience: string; 
+      goal: string;
+      analysis?: any;
+    }>) => {
+      if (!state.currentProject) return;
+      
+      const updatedProject = {
+        ...state.currentProject,
+        contentIdea: action.payload,
+        updatedAt: Date.now(),
+      };
+      
+      const index = state.projects.findIndex(p => p.id === state.currentProject?.id);
+      if (index !== -1) {
+        state.projects[index] = updatedProject;
+        state.currentProject = updatedProject;
+        
+        // Save to localStorage
+        saveProjects(state.projects);
+      }
+    },
+    
+    // Loading states
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
     
-    // Set error state
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
@@ -90,6 +121,7 @@ export const {
   initializeProjects,
   createProject,
   setCurrentProject,
+  saveContentIdea,
   setLoading,
   setError,
 } = projectsSlice.actions;
