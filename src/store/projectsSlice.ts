@@ -15,9 +15,32 @@ const loadProjects = () => {
   return [];
 };
 
+interface ContentIdea {
+  id: string;
+  title: string;
+  contentIdea: string;
+  targetAudience: string;
+  contentGoal: string;
+  analysis?: any;
+  createdAt: number;
+  updatedAt: number;
+}
+
+interface Hook {
+  id: string;
+  contentIdeaId: string;
+  hookType: string;
+  selectedHook?: string;
+  generatedHooks?: any;
+  createdAt: number;
+  updatedAt: number;
+}
+
 interface Project {
   id: string;
   title: string;
+  contentIdea?: ContentIdea;
+  hook?: Hook;
   createdAt: number;
   updatedAt: number;
 }
@@ -29,9 +52,19 @@ interface ProjectsState {
   error: string | null;
 }
 
+// Load initial projects
+const loadInitialProjects = () => {
+  try {
+    return loadProjects();
+  } catch (error) {
+    console.error("Failed to load projects from localStorage:", error);
+    return [];
+  }
+};
+
 // Define initial state
 const initialState: ProjectsState = {
-  projects: [],
+  projects: loadInitialProjects(),
   currentProject: null,
   loading: false,
   error: null,
@@ -64,6 +97,72 @@ const projectsSlice = createSlice({
       }
     },
     
+    // Content idea management
+    saveContentIdea: (state, action: PayloadAction<{
+      contentIdea: string;
+      targetAudience: string;
+      contentGoal: string;
+      analysis?: any;
+    }>) => {
+      if (!state.currentProject) return;
+      
+      const contentIdea: ContentIdea = {
+        id: Date.now().toString(),
+        title: state.currentProject.title,
+        ...action.payload,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      
+      const updatedProject = {
+        ...state.currentProject,
+        contentIdea,
+        updatedAt: Date.now(),
+      };
+      
+      const index = state.projects.findIndex(p => p.id === state.currentProject?.id);
+      if (index !== -1) {
+        state.projects[index] = updatedProject;
+        state.currentProject = updatedProject;
+        
+        // Save to local storage
+        saveProjects(state.projects);
+      }
+    },
+    
+    // Hook management
+    saveHook: (state, action: PayloadAction<{
+      hookType: string;
+      selectedHook?: string;
+      generatedHooks?: any;
+    }>) => {
+      if (!state.currentProject) return;
+      
+      const hook: Hook = {
+        id: Date.now().toString(),
+        contentIdeaId: state.currentProject.contentIdea?.id || "",
+        ...action.payload,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      
+      const updatedProject = {
+        ...state.currentProject,
+        hook,
+        updatedAt: Date.now(),
+      };
+      
+      const index = state.projects.findIndex(p => p.id === state.currentProject?.id);
+      if (index !== -1) {
+        state.projects[index] = updatedProject;
+        state.currentProject = updatedProject;
+        
+        // Save to local storage
+        saveProjects(state.projects);
+      }
+    },
+    
+    // UI state management
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
@@ -78,6 +177,8 @@ const projectsSlice = createSlice({
 export const {
   createProject,
   setCurrentProject,
+  saveContentIdea,
+  saveHook,
   setLoading,
   setError,
 } = projectsSlice.actions;
